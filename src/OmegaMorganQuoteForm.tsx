@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, FileText, Copy, RotateCcw } from 'lucide-react';
+import { Truck, FileText, Copy, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
 
 interface QuoteFormData {
   projectTitle: string;
@@ -80,6 +80,8 @@ const OmegaMorganQuoteForm: React.FC = () => {
   const [formData, setFormData] = useState<QuoteFormData>(defaultFormData);
   const [quote, setQuote] = useState<string>('');
   const [storageCalculation, setStorageCalculation] = useState<number>(0);
+  const [aiInput, setAiInput] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   // Auto-select trailer and tractor based on forklift selection
   useEffect(() => {
@@ -121,6 +123,128 @@ const OmegaMorganQuoteForm: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const parseAIInput = () => {
+    setIsProcessing(true);
+    
+    // Simulate AI processing delay
+    setTimeout(() => {
+      const input = aiInput.toLowerCase();
+      const newFormData = { ...formData };
+      
+      // Extract project title (look for "project:" or first line)
+      const projectMatch = input.match(/project[:\s]+([^\n]+)/i) || input.match(/^([^\n]+)/);
+      if (projectMatch) {
+        newFormData.projectTitle = projectMatch[1].trim();
+      }
+      
+      // Extract company name
+      const companyMatch = input.match(/company[:\s]+([^\n]+)/i) || input.match(/client[:\s]+([^\n]+)/i);
+      if (companyMatch) {
+        newFormData.companyName = companyMatch[1].trim();
+      }
+      
+      // Extract address
+      const addressMatch = input.match(/address[:\s]+([^\n]+)/i) || input.match(/location[:\s]+([^\n]+)/i) || input.match(/site[:\s]+([^\n]+)/i);
+      if (addressMatch) {
+        newFormData.siteAddress = addressMatch[1].trim();
+      }
+      
+      // Extract contact name
+      const contactMatch = input.match(/contact[:\s]+([^\n]+)/i) || input.match(/site contact[:\s]+([^\n]+)/i);
+      if (contactMatch) {
+        newFormData.siteContactName = contactMatch[1].trim();
+      }
+      
+      // Extract phone number
+      const phoneMatch = input.match(/phone[:\s]*([\d\-\(\)\s]+)/i) || input.match(/(\(\d{3}\)\s*\d{3}-\d{4})/);
+      if (phoneMatch) {
+        newFormData.siteContactPhone = phoneMatch[1].trim();
+      }
+      
+      // Extract crew size
+      const crewMatch = input.match(/(\d+)[^\d]*(?:man|person|crew|worker)/i);
+      if (crewMatch) {
+        newFormData.crewSize = crewMatch[1];
+      }
+      
+      // Extract forklift information
+      if (input.includes('5k') || input.includes('5000')) {
+        newFormData.forkliftSize = '5k';
+      } else if (input.includes('8k') || input.includes('8000')) {
+        newFormData.forkliftSize = '8k';
+      } else if (input.includes('15k') || input.includes('15000')) {
+        newFormData.forkliftSize = '15k';
+      } else if (input.includes('30k') || input.includes('30000')) {
+        newFormData.forkliftSize = '30k';
+      } else if (input.includes('hoist')) {
+        newFormData.forkliftSize = 'Hoist 18/26';
+      } else if (input.includes('versalift 25') || input.includes('25/35')) {
+        newFormData.forkliftSize = 'Versalift 25/35';
+      } else if (input.includes('versalift 40') || input.includes('40/60')) {
+        newFormData.forkliftSize = 'Versalift 40/60';
+      } else if (input.includes('versalift 60') || input.includes('60/80')) {
+        newFormData.forkliftSize = 'Versalift 60/80';
+      } else if (input.includes('trilifter')) {
+        newFormData.forkliftSize = 'Trilifter';
+      }
+      
+      // Extract trailer type
+      if (input.includes('rolldeck')) {
+        newFormData.trailerType = 'Rolldeck';
+      } else if (input.includes('stepdeck')) {
+        newFormData.trailerType = 'Stepdeck';
+      } else if (input.includes('lowboy')) {
+        newFormData.trailerType = 'Lowboy';
+      } else if (input.includes('dovetail')) {
+        newFormData.trailerType = 'Dovetail';
+      } else if (input.includes('stretch double drop')) {
+        newFormData.trailerType = 'Stretch Double Drop';
+      } else if (input.includes('curtain')) {
+        newFormData.trailerType = 'Curtain';
+      }
+      
+      // Extract storage information
+      if (input.includes('outdoor storage')) {
+        newFormData.storageOption = 'Outdoor';
+      } else if (input.includes('indoor storage')) {
+        newFormData.storageOption = 'Indoor';
+      }
+      
+      // Extract square footage
+      const sqftMatch = input.match(/(\d+)\s*(?:sq\s*ft|square\s*feet|sqft)/i);
+      if (sqftMatch) {
+        newFormData.storageSquareFootage = sqftMatch[1];
+      }
+      
+      // Extract yard location
+      if (input.includes('mukilteo')) {
+        newFormData.yardLocation = 'Mukilteo';
+      } else if (input.includes('fife')) {
+        newFormData.yardLocation = 'Fife';
+      }
+      
+      // Extract work description (everything that doesn't match other patterns)
+      let workDescription = input;
+      // Remove already extracted information
+      workDescription = workDescription.replace(/project[:\s]+[^\n]+/gi, '');
+      workDescription = workDescription.replace(/company[:\s]+[^\n]+/gi, '');
+      workDescription = workDescription.replace(/client[:\s]+[^\n]+/gi, '');
+      workDescription = workDescription.replace(/address[:\s]+[^\n]+/gi, '');
+      workDescription = workDescription.replace(/location[:\s]+[^\n]+/gi, '');
+      workDescription = workDescription.replace(/contact[:\s]+[^\n]+/gi, '');
+      workDescription = workDescription.replace(/phone[:\s]*[\d\-\(\)\s]+/gi, '');
+      workDescription = workDescription.replace(/(\d+)[^\d]*(?:man|person|crew|worker)/gi, '');
+      workDescription = workDescription.trim();
+      
+      if (workDescription && workDescription.length > 20) {
+        newFormData.workDescription = workDescription.charAt(0).toUpperCase() + workDescription.slice(1);
+      }
+      
+      setFormData(newFormData);
+      setIsProcessing(false);
+    }, 1500); // Simulate processing time
   };
 
   const generateEquipmentList = () => {
@@ -200,6 +324,7 @@ Omega Morgan`;
     setFormData(defaultFormData);
     setQuote('');
     setStorageCalculation(0);
+    setAiInput('');
   };
 
   if (quote) {
@@ -255,6 +380,46 @@ Omega Morgan`;
                 <h1 className="text-2xl font-bold text-white">Omega Morgan Quote Generator</h1>
                 <p className="text-blue-100 mt-1">Professional equipment rental quotes</p>
               </div>
+            </div>
+          </div>
+
+          {/* AI Input Section */}
+          <div className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-200">
+            <div className="flex items-center gap-3 mb-4">
+              <Sparkles className="w-6 h-6 text-purple-600" />
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">AI Project Parser</h2>
+                <p className="text-sm text-gray-600">Paste your project details and let AI fill out the form automatically</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <textarea
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors resize-vertical"
+                rows={4}
+                placeholder="Example: Project: Office Building Move&#10;Company: ABC Construction&#10;Address: 123 Main St, Seattle, WA&#10;Contact: John Smith&#10;Phone: (206) 555-0123&#10;Need 3-man crew with 8k forklift and rolldeck trailer&#10;Moving office equipment from 2nd floor to ground level..."
+                value={aiInput}
+                onChange={(e) => setAiInput(e.target.value)}
+              />
+              
+              <button
+                type="button"
+                onClick={parseAIInput}
+                disabled={!aiInput.trim() || isProcessing}
+                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed"
+              >
+                {isProcessing ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-4 h-4" />
+                    Parse & Fill Form
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
