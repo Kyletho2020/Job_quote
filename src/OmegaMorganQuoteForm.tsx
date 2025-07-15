@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Truck, FileText, Copy, RotateCcw, Sparkles, Wand2 } from 'lucide-react';
+import { Truck, FileText, Copy, RotateCcw, Sparkles, Wand2, AlertTriangle, Key } from 'lucide-react';
 
 interface QuoteFormData {
   projectTitle: string;
