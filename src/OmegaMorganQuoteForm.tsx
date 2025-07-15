@@ -82,6 +82,9 @@ const OmegaMorganQuoteForm: React.FC = () => {
   const [storageCalculation, setStorageCalculation] = useState<number>(0);
   const [aiInput, setAiInput] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [openaiApiKey, setOpenaiApiKey] = useState<string>('');
+  const [showApiKeyInput, setShowApiKeyInput] = useState<boolean>(false);
+  const [apiError, setApiError] = useState<string>('');
 
   // Auto-select trailer and tractor based on forklift selection
   useEffect(() => {
