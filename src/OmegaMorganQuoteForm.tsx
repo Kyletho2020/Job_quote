@@ -82,7 +82,7 @@ const OmegaMorganQuoteForm: React.FC = () => {
   const [storageCalculation, setStorageCalculation] = useState<number>(0);
   const [aiInput, setAiInput] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [openaiApiKey] = useState<string>('YOUR_API_KEY_HERE'); // Replace with your actual API key
+  const [openaiApiKey] = useState<string>(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); // Replace with your actual API key
   const [apiError, setApiError] = useState<string>('');
 
   // Auto-select trailer and tractor based on forklift selection
