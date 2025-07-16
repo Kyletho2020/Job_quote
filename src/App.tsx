@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, CheckCircle, Calculator, Truck, Users, MapPin, Phone, Building, FileText, Mail, User } from 'lucide-react';
+import {
+  Copy,
+  CheckCircle,
+  Calculator,
+  Truck,
+  Users,
+  MapPin,
+  Phone,
+  Building,
+  FileText,
+  Mail,
+  User,
+  MessageSquare,
+} from 'lucide-react';
 
 interface FormData {
   projectTitle: string;
@@ -38,6 +51,14 @@ const OmegaMorganQuoteForm: React.FC = () => {
 
   const [copied, setCopied] = useState(false);
   const [storageCalculation, setStorageCalculation] = useState<number>(0);
+  const [chatHistory, setChatHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+  const systemMessage = {
+    role: 'system' as const,
+    content:
+      'You are an assistant helping to fill out a job quote form. Ask clarifying questions as needed and when possible respond with a JSON object matching the form fields.',
+  };
 
   const forkliftOptions = [
     { value: '', label: 'Select Forklift Size' },
@@ -177,6 +198,39 @@ Omega Morgan`;
     }
   };
 
+  const sendChatMessage = async () => {
+    if (!chatInput.trim()) return;
+    const newHistory = [...chatHistory, { role: 'user' as const, content: chatInput }];
+    setChatHistory(newHistory);
+    setChatInput('');
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [systemMessage, ...newHistory],
+        }),
+      });
+      const data = await response.json();
+      const message = data.choices?.[0]?.message?.content || '';
+      const updatedHistory = [...newHistory, { role: 'assistant' as const, content: message }];
+      setChatHistory(updatedHistory);
+
+      const match = message.match(/\{[\s\S]*\}/);
+      if (match) {
+        const parsed = JSON.parse(match[0]);
+        setFormData(prev => ({ ...prev, ...parsed }));
+      }
+    } catch (err) {
+      console.error('ChatGPT request failed:', err);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <div className="container mx-auto px-4 py-8">
@@ -188,6 +242,38 @@ Omega Morgan`;
               <h1 className="text-4xl font-bold text-gray-800">Omega Morgan</h1>
             </div>
             <p className="text-xl text-gray-600">Quote Generator</p>
+          </div>
+
+          {/* ChatGPT Assistant */}
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+              <MessageSquare className="w-6 h-6 mr-2 text-blue-600" />
+              Assistant
+            </h2>
+            <div className="space-y-2 max-h-48 overflow-y-auto mb-4 text-sm">
+              {chatHistory.map((msg, idx) => (
+                <div key={idx} className={msg.role === 'user' ? 'text-right' : ''}>
+                  <span className="font-semibold mr-1">{msg.role === 'user' ? 'You' : 'Assistant'}:</span>
+                  {msg.content}
+                </div>
+              ))}
+            </div>
+            <div className="flex">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && sendChatMessage()}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Ask the assistant..."
+              />
+              <button
+                onClick={sendChatMessage}
+                className="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700"
+              >
+                Send
+              </button>
+            </div>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
