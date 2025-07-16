@@ -10,7 +10,11 @@ exports.handler = async function(event) {
     const body = JSON.parse(event.body || "{}");
     const messages = body.messages;
     if (!messages) {
-      return { statusCode: 400, body: "No messages provided." };
+      return { 
+        statusCode: 400, 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "No messages provided." })
+      };
     }
 
     const completion = await openai.createChatCompletion({
