@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Truck, FileText, Copy, RotateCcw, Sparkles, Wand2, AlertTriangle, Key } from 'lucide-react';
+import ChatAssistant from './components/ChatAssistant';
+
 
 interface QuoteFormData {
   projectTitle: string;
