@@ -2,6 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Truck, FileText, Copy, RotateCcw, Sparkles, Wand2, AlertTriangle, Key } from 'lucide-react';
 import ChatAssistant from './components/ChatAssistant';
 
+<ChatAssistant onAnswer={(field, value) => {
+  if (field === 'name') {
+    // Replace with however you're tracking form state
+    document.querySelector('input[name="name"]')?.setAttribute('value', value);
+  }
+  if (field === 'email') {
+    document.querySelector('input[name="email"]')?.setAttribute('value', value);
+  }
+}} />
 
 interface QuoteFormData {
   projectTitle: string;
