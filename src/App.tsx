@@ -38,6 +38,8 @@ const OmegaMorganQuoteForm: React.FC = () => {
 
   const [copied, setCopied] = useState(false);
   const [storageCalculation, setStorageCalculation] = useState<number>(0);
+  const [aiInput, setAiInput] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const forkliftOptions = [
     { value: '', label: 'Select Forklift Size' },
@@ -115,6 +117,28 @@ const OmegaMorganQuoteForm: React.FC = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleAIAutoFill = async () => {
+    if (!aiInput.trim()) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: aiInput }),
+      });
+      const data = await res.json();
+      setFormData(prev => ({
+        ...prev,
+        ...Object.fromEntries(
+          Object.entries(data).filter(([k, v]) => v && v !== '')
+        ),
+      }));
+    } catch (e) {
+      alert('AI extraction failed');
+    }
+    setLoading(false);
+  };
+
   const generateEquipmentList = () => {
     const equipment = ['Gear truck'];
     
@@ -188,6 +212,25 @@ Omega Morgan`;
               <h1 className="text-4xl font-bold text-gray-800">Omega Morgan</h1>
             </div>
             <p className="text-xl text-gray-600">Quote Generator</p>
+          </div>
+
+          <div className="mb-8">
+            <label className="font-semibold block mb-2">Paste Project Details (AI will auto-fill):</label>
+            <textarea
+              rows={4}
+              className="w-full p-3 border border-gray-300 rounded-lg mb-2"
+              placeholder="Paste a client email, project scope, or job request here…"
+              value={aiInput}
+              onChange={(e) => setAiInput(e.target.value)}
+              disabled={loading}
+            />
+            <button
+              onClick={handleAIAutoFill}
+              disabled={loading || !aiInput.trim()}
+              className="px-4 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+            >
+              {loading ? 'Filling…' : 'Auto-Fill'}
+            </button>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
