@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Copy, CheckCircle, Calculator, Truck, Users, MapPin, Phone, Building, FileText, Mail, User } from 'lucide-react';
 
+const App: React.FC = () => {
+  return <OmegaMorganQuoteForm />;
+};
+
 interface FormData {
   projectTitle: string;
   companyName: string;
@@ -38,6 +42,8 @@ const OmegaMorganQuoteForm: React.FC = () => {
 
   const [copied, setCopied] = useState(false);
   const [storageCalculation, setStorageCalculation] = useState<number>(0);
+  const [aiInput, setAiInput] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const forkliftOptions = [
     { value: '', label: 'Select Forklift Size' },
@@ -177,6 +183,26 @@ Omega Morgan`;
     }
   };
 
+  const handleAIAutoFill = async () => {
+    if (!aiInput.trim()) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: aiInput })
+      });
+      const data = await res.json();
+      // For each field, if AI found it, update form state. If not, leave as-is.
+      setFormData(prev => ({ ...prev, ...Object.fromEntries(
+        Object.entries(data).filter(([k, v]) => v && v !== '')
+      ) }));
+    } catch (e) {
+      alert('AI extraction failed');
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <div className="container mx-auto px-4 py-8">
@@ -193,6 +219,32 @@ Omega Morgan`;
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Form Section */}
             <div className="bg-white rounded-2xl shadow-xl p-8">
+              {/* AI Auto-Fill Section */}
+              <div className="mb-8 p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                  <span className="w-6 h-6 mr-2 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm">AI</span>
+                  Smart Auto-Fill
+                </h3>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Paste Project Details (AI will auto-fill form fields):
+                </label>
+                <textarea
+                  rows={4}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all mb-3"
+                  placeholder="Paste a client email, project scope, or job request here…"
+                  value={aiInput}
+                  onChange={(e) => setAiInput(e.target.value)}
+                  disabled={loading}
+                />
+                <button
+                  onClick={handleAIAutoFill}
+                  disabled={loading || !aiInput.trim()}
+                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all font-medium"
+                >
+                  {loading ? 'Processing...' : 'Auto-Fill Form'}
+                </button>
+              </div>
+
               <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
                 <FileText className="w-6 h-6 mr-2 text-blue-600" />
                 Project Details
@@ -491,4 +543,4 @@ Omega Morgan`;
   );
 };
 
-export default OmegaMorganQuoteForm;
+export default App;
