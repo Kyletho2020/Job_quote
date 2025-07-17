@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, CheckCircle, Calculator, Truck, Users, MapPin, Phone, Building, FileText, Mail, User } from 'lucide-react';
+import { Copy, CheckCircle, Calculator, Truck, Users, MapPin, Phone, Building, FileText, Mail, User, Bot } from 'lucide-react';
 import { supabase } from './lib/supabase';
+import AIChatbox from './components/AIChatbox';
 
 const App: React.FC = () => {
   return <OmegaMorganQuoteForm />;
@@ -42,41 +43,18 @@ const OmegaMorganQuoteForm: React.FC = () => {
   });
 
   const [copied, setCopied] = useState(false);
+  const [showAIChatbox, setShowAIChatbox] = useState(false);
   const [storageCalculation, setStorageCalculation] = useState<number>(0);
 
-  const handleAIAutoFill = async () => {
-    if (!aiInput.trim()) return;
-    
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('extract-project-info', {
-        body: { text: aiInput }
-      });
-
-      if (error) {
-        console.error('Error calling edge function:', error);
-        alert('Failed to extract information. Please try again.');
-        return;
-      }
-
-      const { extractedInfo } = data;
-      
-      // Update form data with extracted information
-      setFormData(prev => ({
-        ...prev,
-        ...Object.fromEntries(
-          Object.entries(extractedInfo).filter(([_, value]) => value && value.trim() !== '')
-        )
-      }));
-      
-      setAiInput('');
-      alert('Information extracted and filled successfully!');
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Failed to extract information. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  const handleAIExtract = (extractedInfo: any) => {
+    // Update form data with extracted information
+    setFormData(prev => ({
+      ...prev,
+      ...Object.fromEntries(
+        Object.entries(extractedInfo).filter(([_, value]) => value && value.trim() !== '')
+      )
+    }));
+    setShowAIChatbox(false);
   };
 
   const forkliftOptions = [
@@ -237,6 +215,23 @@ Omega Morgan`;
                 <FileText className="w-6 h-6 mr-2 text-blue-600" />
                 Project Details
               </h2>
+
+              {/* AI Assistant Button */}
+              <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-blue-800 mb-1">AI Assistant</h3>
+                    <p className="text-sm text-blue-600">Let AI extract project info from emails or documents</p>
+                  </div>
+                  <button
+                    onClick={() => setShowAIChatbox(true)}
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Bot className="w-4 h-4 mr-2" />
+                    Open AI Chat
+                  </button>
+                </div>
+              </div>
 
               <div className="space-y-6">
                 {/* Project Information */}
@@ -525,6 +520,13 @@ Omega Morgan`;
               </div>
             </div>
           </div>
+
+          {/* AI Chatbox */}
+          <AIChatbox
+            isOpen={showAIChatbox}
+            onClose={() => setShowAIChatbox(false)}
+            onExtract={handleAIExtract}
+          />
         </div>
       </div>
     </div>
