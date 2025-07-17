@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, CheckCircle, Calculator, Truck, Users, MapPin, Phone, Building, FileText, Mail, User, Bot, X, Plus } from 'lucide-react';
+import { Copy, CheckCircle, Calculator, Truck, Users, MapPin, Phone, Building, FileText, Mail, User, Bot, X, Plus, Settings } from 'lucide-react';
 import SimpleAIChatbox from './components/SimpleAIChatbox';
 import SimpleApiKeyManager from './components/SimpleApiKeyManager';
 
@@ -40,7 +40,7 @@ const OmegaMorganQuoteForm: React.FC = () => {
     crewSize: '3',
     forkliftSize: '',
     forkliftQuantity: 1,
-    forkliftSizes: [''],
+    forkliftSizes: ['None'],
     trailerType: '',
     trailerQuantity: 1,
     trailerTypes: [''],
@@ -59,9 +59,9 @@ const OmegaMorganQuoteForm: React.FC = () => {
   const [showApiKeyManager, setShowApiKeyManager] = useState(false);
   const [storedKeyId, setStoredKeyId] = useState<string | null>(null);
   const [storageCalculation, setStorageCalculation] = useState<number>(0);
+  const [activeSection, setActiveSection] = useState('project');
 
   const handleAIExtract = (extractedInfo: any) => {
-    // Update form data with extracted information
     setFormData(prev => ({
       ...prev,
       ...Object.fromEntries(
@@ -129,6 +129,14 @@ const OmegaMorganQuoteForm: React.FC = () => {
     { value: 'Fife', label: 'Fife' }
   ];
 
+  const sections = [
+    { id: 'project', label: 'Project Info', icon: Building },
+    { id: 'site', label: 'Site Details', icon: MapPin },
+    { id: 'equipment', label: 'Equipment', icon: Truck },
+    { id: 'storage', label: 'Storage', icon: Calculator },
+    { id: 'final', label: 'Final Details', icon: User }
+  ];
+
   // Auto-select trailer based on forklift
   useEffect(() => {
     const smallForklifts = ['Forklift (5k)', 'Forklift (8k)', 'Forklift (15k)'];
@@ -150,7 +158,7 @@ const OmegaMorganQuoteForm: React.FC = () => {
     if (formData.forkliftSize === 'Versalift 60/80') {
       setFormData(prev => ({
         ...prev,
-        forkliftSizes: [prev.forkliftSizes[0] || 'Forklift (15k)'],
+        forkliftSizes: ['Forklift (15k)'],
         trailerQuantity: 2,
         trailerTypes: ['Stepdeck', 'Lowboy'],
         tractorQuantity: 2,
@@ -329,152 +337,211 @@ Omega Morgan`;
     return false;
   };
 
+  const scrollToSection = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <Truck className="w-12 h-12 text-blue-600 mr-3" />
-              <h1 className="text-4xl font-bold text-gray-800">Omega Morgan</h1>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Truck className="w-10 h-10 text-black mr-4" />
+              <div>
+                <h1 className="text-3xl font-bold text-black">Omega Morgan</h1>
+                <p className="text-lg text-gray-600">Quote Generator</p>
+              </div>
             </div>
-            <p className="text-xl text-gray-600">Quote Generator</p>
+            
+            {/* AI Assistant Controls */}
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowApiKeyManager(true)}
+                className="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </button>
+              <button
+                onClick={() => setShowAIChatbox(true)}
+                disabled={!storedKeyId}
+                className="flex items-center px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Bot className="w-5 h-5 mr-2" />
+                AI Assistant
+              </button>
+            </div>
           </div>
+        </div>
+      </div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Form Section */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <FileText className="w-6 h-6 mr-2 text-blue-600" />
-                Project Details
-              </h2>
+      <div className="max-w-7xl mx-auto px-8 py-8">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Sidebar Navigation */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-32">
+              <h3 className="text-lg font-bold text-black mb-6">Sections</h3>
+              <nav className="space-y-2">
+                {sections.map((section) => {
+                  const Icon = section.icon;
+                  return (
+                    <button
+                      key={section.id}
+                      onClick={() => scrollToSection(section.id)}
+                      className={`w-full flex items-center px-4 py-3 rounded-lg text-left transition-colors ${
+                        activeSection === section.id
+                          ? 'bg-black text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <Icon className="w-5 h-5 mr-3" />
+                      {section.label}
+                    </button>
+                  );
+                })}
+              </nav>
 
-              {/* AI Assistant Button */}
-              <div className="mb-6 space-y-4">
-                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-blue-800 mb-1">AI Assistant</h3>
-                      <p className="text-sm text-blue-600">Let AI extract project info from emails or documents</p>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => setShowApiKeyManager(true)}
-                        className="flex items-center px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
-                      >
-                        Settings
-                      </button>
-                      <button
-                        onClick={() => setShowAIChatbox(true)}
-                        disabled={!storedKeyId}
-                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                      >
-                        <Bot className="w-4 h-4 mr-2" />
-                        Open AI Chat
-                      </button>
-                    </div>
-                  </div>
-                  {!storedKeyId && (
-                    <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-700">
-                      ⚠️ Set up your OpenAI API key in settings to use AI extraction
-                    </div>
-                  )}
+              {/* AI Status */}
+              <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center mb-2">
+                  <Bot className="w-4 h-4 text-gray-600 mr-2" />
+                  <span className="text-sm font-medium text-gray-700">AI Status</span>
+                </div>
+                <div className={`text-sm ${storedKeyId ? 'text-green-600' : 'text-red-600'}`}>
+                  {storedKeyId ? '✓ Ready' : '✗ Setup Required'}
                 </div>
               </div>
+            </div>
+          </div>
 
-              <div className="space-y-6">
-                {/* Project Information */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Building className="w-4 h-4 inline mr-1" />
-                      Project Title
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.projectTitle}
-                      onChange={(e) => handleInputChange('projectTitle', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Enter project title"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Building className="w-4 h-4 inline mr-1" />
-                      Company Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.companyName}
-                      onChange={(e) => handleInputChange('companyName', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Enter company name"
-                    />
-                  </div>
-                </div>
-
-                {/* Site Information */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <MapPin className="w-4 h-4 inline mr-1" />
-                    Site Address
-                  </label>
-                  <textarea
-                    value={formData.siteAddress}
-                    onChange={(e) => handleInputChange('siteAddress', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    rows={2}
-                    placeholder="Enter complete site address"
-                  />
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <User className="w-4 h-4 inline mr-1" />
-                      Site Contact Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.siteContactName}
-                      onChange={(e) => handleInputChange('siteContactName', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="Contact person name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <Phone className="w-4 h-4 inline mr-1" />
-                      Site Contact Phone
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.siteContactPhone}
-                      onChange={(e) => handleInputChange('siteContactPhone', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      placeholder="(555) 123-4567"
-                    />
-                  </div>
-                </div>
-
-                {/* Equipment Selection */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <Truck className="w-5 h-5 mr-2 text-blue-600" />
-                    Equipment Selection
-                  </h3>
-
-                  <div className="grid md:grid-cols-3 gap-4 mb-4">
+          {/* Main Form */}
+          <div className="lg:col-span-2">
+            <div className="space-y-8">
+              {/* Project Information */}
+              <section id="project" className="bg-white rounded-xl shadow-lg p-8">
+                <h2 className="text-2xl font-bold text-black mb-8 flex items-center">
+                  <Building className="w-7 h-7 mr-3" />
+                  Project Information
+                </h2>
+                
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        <Users className="w-4 h-4 inline mr-1" />
+                      <label className="block text-sm font-bold text-black mb-3">
+                        Project Title
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.projectTitle}
+                        onChange={(e) => handleInputChange('projectTitle', e.target.value)}
+                        className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg"
+                        placeholder="Enter project title"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-black mb-3">
+                        Company Name
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.companyName}
+                        onChange={(e) => handleInputChange('companyName', e.target.value)}
+                        className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg"
+                        placeholder="Enter company name"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-black mb-3">
+                      Work Description
+                    </label>
+                    <textarea
+                      value={formData.workDescription}
+                      onChange={(e) => handleInputChange('workDescription', e.target.value)}
+                      className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg"
+                      rows={4}
+                      placeholder="Describe the work to be performed..."
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Site Details */}
+              <section id="site" className="bg-white rounded-xl shadow-lg p-8">
+                <h2 className="text-2xl font-bold text-black mb-8 flex items-center">
+                  <MapPin className="w-7 h-7 mr-3" />
+                  Site Details
+                </h2>
+                
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-bold text-black mb-3">
+                      Site Address
+                    </label>
+                    <textarea
+                      value={formData.siteAddress}
+                      onChange={(e) => handleInputChange('siteAddress', e.target.value)}
+                      className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg"
+                      rows={3}
+                      placeholder="Enter complete site address"
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-black mb-3">
+                        Site Contact Name
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.siteContactName}
+                        onChange={(e) => handleInputChange('siteContactName', e.target.value)}
+                        className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg"
+                        placeholder="Contact person name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-black mb-3">
+                        Site Contact Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={formData.siteContactPhone}
+                        onChange={(e) => handleInputChange('siteContactPhone', e.target.value)}
+                        className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg"
+                        placeholder="(555) 123-4567"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Equipment Selection */}
+              <section id="equipment" className="bg-white rounded-xl shadow-lg p-8">
+                <h2 className="text-2xl font-bold text-black mb-8 flex items-center">
+                  <Truck className="w-7 h-7 mr-3" />
+                  Equipment Selection
+                </h2>
+
+                <div className="space-y-8">
+                  {/* Crew and Main Forklift */}
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-black mb-3">
+                        <Users className="w-4 h-4 inline mr-2" />
                         Crew Size
                       </label>
                       <select
                         value={formData.crewSize}
                         onChange={(e) => handleInputChange('crewSize', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg"
                       >
                         {[1, 2, 3, 4, 5, 6, 7, 8].map(size => (
                           <option key={size} value={size.toString()}>{size}</option>
@@ -482,13 +549,13 @@ Omega Morgan`;
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-sm font-bold text-black mb-3">
                         Forklift Size
                       </label>
                       <select
                         value={formData.forkliftSize}
                         onChange={(e) => handleInputChange('forkliftSize', e.target.value)}
-                        className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                        className={`w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg ${
                           isAutoSelected(formData.forkliftSize) ? 'ring-2 ring-green-500 border-green-500' : ''
                         }`}
                       >
@@ -498,28 +565,28 @@ Omega Morgan`;
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Qty
+                      <label className="block text-sm font-bold text-black mb-3">
+                        Quantity
                       </label>
                       <input
                         type="number"
                         value={formData.forkliftQuantity}
                         onChange={(e) => handleInputChange('forkliftQuantity', parseInt(e.target.value) || 1)}
                         min="1"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg"
                       />
                     </div>
                   </div>
 
                   {/* Forklift 2 Size */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <div>
+                    <label className="block text-sm font-bold text-black mb-3">
                       Forklift 2 Size
                     </label>
                     <select
                       value={formData.forkliftSizes[0] || 'None'}
                       onChange={(e) => handleForkliftSizeChange(0, e.target.value)}
-                      className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                      className={`w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg ${
                         isAutoSelected(formData.forkliftSizes[0]) ? 'ring-2 ring-green-500 border-green-500' : ''
                       }`}
                     >
@@ -530,17 +597,18 @@ Omega Morgan`;
                   </div>
 
                   {/* Trailer and Tractor Selection */}
-                  <div className="space-y-4">
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-black">Trailers & Tractors</h3>
                     {formData.trailerTypes.map((trailerType, index) => (
-                      <div key={index} className="grid md:grid-cols-5 gap-4 items-end">
-                        <div className="md:col-span-2">
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            {index === 0 ? 'Trailer Type' : `Trailer ${index + 1} Type`}
+                      <div key={index} className="grid grid-cols-5 gap-4 items-end">
+                        <div>
+                          <label className="block text-sm font-bold text-black mb-3">
+                            {index === 0 ? 'Trailer Type' : `Trailer ${index + 1}`}
                           </label>
                           <select
                             value={trailerType}
                             onChange={(e) => handleTrailerTypeChange(index, e.target.value)}
-                            className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                            className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all ${
                               isAutoSelected(trailerType) ? 'ring-2 ring-green-500 border-green-500' : ''
                             }`}
                           >
@@ -550,7 +618,7 @@ Omega Morgan`;
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-sm font-bold text-black mb-3">
                             Qty
                           </label>
                           <input
@@ -561,13 +629,13 @@ Omega Morgan`;
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            {index === 0 ? 'Tractor Type' : `Tractor ${index + 1} Type`}
+                          <label className="block text-sm font-bold text-black mb-3">
+                            {index === 0 ? 'Tractor Type' : `Tractor ${index + 1}`}
                           </label>
                           <select
                             value={formData.tractorTypes[index] || 'None'}
                             onChange={(e) => handleTractorTypeChange(index, e.target.value)}
-                            className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                            className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all ${
                               isAutoSelected(formData.tractorTypes[index]) ? 'ring-2 ring-green-500 border-green-500' : ''
                             }`}
                           >
@@ -576,19 +644,30 @@ Omega Morgan`;
                             ))}
                           </select>
                         </div>
+                        <div>
+                          <label className="block text-sm font-bold text-black mb-3">
+                            Qty
+                          </label>
+                          <input
+                            type="number"
+                            value={1}
+                            readOnly
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50"
+                          />
+                        </div>
                         <div className="flex justify-center">
                           {index === 0 ? (
                             <button
                               onClick={addTrailerRow}
-                              className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                              className="flex items-center px-4 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
                             >
-                              <Plus className="w-4 h-4 mr-1" />
+                              <Plus className="w-4 h-4 mr-2" />
                               Add Trailer
                             </button>
                           ) : (
                             <button
                               onClick={() => removeTrailerRow(index)}
-                              className="flex items-center px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                              className="flex items-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -598,37 +677,25 @@ Omega Morgan`;
                     ))}
                   </div>
                 </div>
+              </section>
 
-                {/* Work Description */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Work Description
-                  </label>
-                  <textarea
-                    value={formData.workDescription}
-                    onChange={(e) => handleInputChange('workDescription', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    rows={3}
-                    placeholder="Describe the work to be performed..."
-                  />
-                </div>
+              {/* Storage Options */}
+              <section id="storage" className="bg-white rounded-xl shadow-lg p-8">
+                <h2 className="text-2xl font-bold text-black mb-8 flex items-center">
+                  <Calculator className="w-7 h-7 mr-3" />
+                  Storage Options
+                </h2>
 
-                {/* Storage Options */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <Calculator className="w-5 h-5 mr-2 text-blue-600" />
-                    Storage Options
-                  </h3>
-
-                  <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-sm font-bold text-black mb-3">
                         Storage Type
                       </label>
                       <select
                         value={formData.storageType}
                         onChange={(e) => handleInputChange('storageType', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg"
                       >
                         {storageOptions.map(option => (
                           <option key={option.value} value={option.value}>{option.label}</option>
@@ -637,14 +704,14 @@ Omega Morgan`;
                     </div>
                     {formData.storageType !== 'None' && (
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label className="block text-sm font-bold text-black mb-3">
                           Square Footage
                         </label>
                         <input
                           type="number"
                           value={formData.storageSquareFootage}
                           onChange={(e) => handleInputChange('storageSquareFootage', e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg"
                           placeholder="Enter square footage"
                         />
                       </div>
@@ -652,30 +719,36 @@ Omega Morgan`;
                   </div>
 
                   {formData.storageType !== 'None' && (
-                    <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-gray-600 mb-2">
+                    <div className="p-6 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-3">
                         Storage rates: Outdoor $2.50/sqft/month • Indoor $3.50/sqft/month
                       </p>
                       {storageCalculation > 0 && (
-                        <p className="text-lg font-semibold text-blue-600">
+                        <p className="text-xl font-bold text-black">
                           Monthly Cost: ${storageCalculation.toFixed(2)}
                         </p>
                       )}
                     </div>
                   )}
                 </div>
+              </section>
 
-                {/* Final Details */}
-                <div className="grid md:grid-cols-2 gap-4">
+              {/* Final Details */}
+              <section id="final" className="bg-white rounded-xl shadow-lg p-8">
+                <h2 className="text-2xl font-bold text-black mb-8 flex items-center">
+                  <User className="w-7 h-7 mr-3" />
+                  Final Details
+                </h2>
+
+                <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <MapPin className="w-4 h-4 inline mr-1" />
+                    <label className="block text-sm font-bold text-black mb-3">
                       Return Location
                     </label>
                     <select
                       value={formData.yardLocation}
                       onChange={(e) => handleInputChange('yardLocation', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg"
                     >
                       {yardOptions.map(option => (
                         <option key={option.value} value={option.value}>{option.label}</option>
@@ -683,35 +756,36 @@ Omega Morgan`;
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <User className="w-4 h-4 inline mr-1" />
+                    <label className="block text-sm font-bold text-black mb-3">
                       Your Name
                     </label>
                     <input
                       type="text"
                       value={formData.yourName}
                       onChange={(e) => handleInputChange('yourName', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className="w-full px-5 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent transition-all text-lg"
                       placeholder="Your name"
                     />
                   </div>
                 </div>
-              </div>
+              </section>
             </div>
+          </div>
 
-            {/* Preview Section */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* Email Preview Panel */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-lg p-6 sticky top-32">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-                  <Mail className="w-6 h-6 mr-2 text-blue-600" />
+                <h3 className="text-xl font-bold text-black flex items-center">
+                  <Mail className="w-6 h-6 mr-2" />
                   Email Preview
-                </h2>
+                </h3>
                 <button
                   onClick={copyToClipboard}
                   className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all ${
                     copied
                       ? 'bg-green-100 text-green-700 border border-green-300'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-black text-white hover:bg-gray-800'
                   }`}
                 >
                   {copied ? (
@@ -722,53 +796,53 @@ Omega Morgan`;
                   ) : (
                     <>
                       <Copy className="w-4 h-4 mr-2" />
-                      Copy Email
+                      Copy
                     </>
                   )}
                 </button>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-6 font-mono text-sm leading-relaxed max-h-96 overflow-y-auto">
+              <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm leading-relaxed max-h-96 overflow-y-auto">
                 <pre className="whitespace-pre-wrap text-gray-800">
                   {generateEmailTemplate()}
                 </pre>
               </div>
 
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-semibold text-blue-800 mb-2">Equipment Summary:</h3>
-                <p className="text-blue-700">{generateEquipmentList()}</p>
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-bold text-black mb-2">Equipment Summary:</h4>
+                <p className="text-gray-700 text-sm">{generateEquipmentList()}</p>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* AI Chatbox */}
-          <SimpleAIChatbox
-            isOpen={showAIChatbox}
-            onClose={() => setShowAIChatbox(false)}
-            onExtract={handleAIExtract}
-            keyId={storedKeyId}
-          />
+        {/* AI Chatbox */}
+        <SimpleAIChatbox
+          isOpen={showAIChatbox}
+          onClose={() => setShowAIChatbox(false)}
+          onExtract={handleAIExtract}
+          keyId={storedKeyId}
+        />
 
-          {/* API Key Manager Modal */}
-          {showApiKeyManager && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-                <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                  <h3 className="text-xl font-bold text-gray-800">API Key Settings</h3>
-                  <button
-                    onClick={() => setShowApiKeyManager(false)}
-                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    <X className="w-5 h-5 text-gray-500" />
-                  </button>
-                </div>
-                <div className="p-6">
-                  <SimpleApiKeyManager onApiKeySet={handleApiKeySet} />
-                </div>
+        {/* API Key Manager Modal */}
+        {showApiKeyManager && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 className="text-xl font-bold text-black">API Key Settings</h3>
+                <button
+                  onClick={() => setShowApiKeyManager(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+              <div className="p-6">
+                <SimpleApiKeyManager onApiKeySet={handleApiKeySet} />
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
