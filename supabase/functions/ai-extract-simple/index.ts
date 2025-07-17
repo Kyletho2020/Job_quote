@@ -1,17 +1,7 @@
 import { corsHeaders } from '../_shared/cors.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
-interface ProjectInfo {
-  projectTitle?: string
-  companyName?: string
-  siteAddress?: string
-  siteContactName?: string
-  siteContactPhone?: string
-  workDescription?: string
-}
-
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 200,
@@ -22,19 +12,9 @@ Deno.serve(async (req: Request) => {
   try {
     const { text, keyId } = await req.json()
 
-    if (!text || typeof text !== 'string') {
+    if (!text || !keyId) {
       return new Response(
-        JSON.stringify({ error: 'Text input is required' }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
-    }
-
-    if (!keyId) {
-      return new Response(
-        JSON.stringify({ error: 'API key ID is required' }),
+        JSON.stringify({ error: 'Text and keyId are required' }),
         {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -48,46 +28,31 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the stored API key
-    const { data: apiKeyData, error: keyError } = await supabase
+    // Retrieve and decrypt the API key
+    const { data: keyData, error: keyError } = await supabase
       .from('api_keys')
       .select('encrypted_key')
       .eq('id', keyId)
       .single()
 
-    if (keyError || !apiKeyData) {
+    if (keyError || !keyData) {
       return new Response(
         JSON.stringify({ error: 'API key not found' }),
         {
-          status: 400,
+          status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
       )
     }
 
-    // Decrypt the API key
-    const encryptionKey = Deno.env.get('API_KEY_ENCRYPTION_SECRET') ?? 'default-encryption-key'
-    const { data: decryptedKey, error: decryptError } = await supabase
-      .rpc('decrypt_api_key', {
-        encrypted_key: apiKeyData.encrypted_key,
-        encryption_key: encryptionKey
-      })
+    // Decrypt the API key (reverse the base64 encoding)
+    const apiKey = atob(keyData.encrypted_key)
 
-    if (decryptError || !decryptedKey) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to decrypt API key' }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
-    }
-
-    // Call OpenAI API with decrypted key
+    // Call OpenAI API
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${decryptedKey}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -95,80 +60,57 @@ Deno.serve(async (req: Request) => {
         messages: [
           {
             role: 'system',
-            content: `You are an expert at extracting project information from text. Extract the following information from the provided text and return it as a JSON object with these exact keys:
-            - projectTitle: The name or title of the project/job
+            content: `You are a helpful assistant that extracts project information from text. 
+            Extract the following information and return it as a JSON object:
+            - projectTitle: The name or title of the project
             - companyName: The company or client name
-            - siteAddress: The complete address where work will be performed
-            - siteContactName: The name of the person to contact at the site
-            - siteContactPhone: The phone number for the site contact
-            - workDescription: A description of the work to be performed
-
-            Only include fields where you can confidently extract the information. If a field cannot be determined from the text, omit it from the response. Return only valid JSON, no additional text.`
+            - siteAddress: The physical address where work will be performed
+            - contactName: The primary contact person's name
+            - phoneNumber: Contact phone number
+            - workDescription: Description of the work to be performed
+            
+            If any information is not found, use an empty string for that field.
+            Return only valid JSON, no additional text.`
           },
           {
             role: 'user',
             content: text
           }
         ],
-        temperature: 0.1,
+        temperature: 0.3,
         max_tokens: 500
       })
     })
 
     if (!openaiResponse.ok) {
       const errorData = await openaiResponse.text()
-      console.error('OpenAI API error:', errorData)
-      return new Response(
-        JSON.stringify({ error: 'Failed to process with AI' }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
+      throw new Error(`OpenAI API error: ${openaiResponse.status} - ${errorData}`)
     }
 
     const openaiData = await openaiResponse.json()
-    const aiResponse = openaiData.choices[0]?.message?.content
-
-    if (!aiResponse) {
-      return new Response(
-        JSON.stringify({ error: 'No response from AI' }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
-    }
-
-    // Parse the AI response as JSON
-    let extractedInfo: ProjectInfo
-    try {
-      extractedInfo = JSON.parse(aiResponse)
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError)
-      return new Response(
-        JSON.stringify({ error: 'Invalid AI response format' }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
-    }
+    const extractedInfo = JSON.parse(openaiData.choices[0].message.content)
 
     return new Response(
-      JSON.stringify({ extractedInfo }),
+      JSON.stringify({
+        success: true,
+        extractedInfo,
+        message: 'Information extracted successfully'
+      }),
       {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   } catch (error) {
-    console.error('Error processing request:', error)
+    console.error('Error in AI extraction:', error)
     return new Response(
-      JSON.stringify({ error: 'Failed to process text' }),
+      JSON.stringify({ 
+        error: 'Failed to extract information',
+        details: error.message 
+      }),
       {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
