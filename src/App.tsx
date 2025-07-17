@@ -25,7 +25,7 @@ const OmegaMorganQuoteForm: React.FC = () => {
     siteAddress: '',
     siteContactName: '',
     siteContactPhone: '',
-    crewSize: '3',
+    crewSize: '4',
     forkliftSize: '',
     trailerType: '',
     tractorType: 'None',
