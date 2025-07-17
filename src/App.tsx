@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Copy, CheckCircle, Calculator, Truck, Users, MapPin, Phone, Building, FileText, Mail, User, Bot, X } from 'lucide-react';
-import { supabase } from './lib/supabase';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
-import AIChatbox from './components/AIChatbox';
-import ApiKeyManager from './components/ApiKeyManager';
-import AuthComponent from './components/AuthComponent';
+import SimpleAIChatbox from './components/SimpleAIChatbox';
+import SimpleApiKeyManager from './components/SimpleApiKeyManager';
 
 const App: React.FC = () => {
   return <OmegaMorganQuoteForm />;
@@ -48,9 +45,8 @@ const OmegaMorganQuoteForm: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [showAIChatbox, setShowAIChatbox] = useState(false);
   const [showApiKeyManager, setShowApiKeyManager] = useState(false);
-  const [hasStoredApiKey, setHasStoredApiKey] = useState(false);
+  const [storedKeyId, setStoredKeyId] = useState<string | null>(null);
   const [storageCalculation, setStorageCalculation] = useState<number>(0);
-  const [user, setUser] = useState<SupabaseUser | null>(null);
 
   const handleAIExtract = (extractedInfo: any) => {
     // Update form data with extracted information
@@ -61,6 +57,10 @@ const OmegaMorganQuoteForm: React.FC = () => {
       )
     }));
     setShowAIChatbox(false);
+  };
+
+  const handleApiKeySet = (hasKey: boolean, keyId?: string) => {
+    setStoredKeyId(hasKey ? keyId || null : null);
   };
 
   const forkliftOptions = [
@@ -224,16 +224,6 @@ Omega Morgan`;
 
               {/* AI Assistant Button */}
               <div className="mb-6 space-y-4">
-                {!user && (
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h3 className="font-semibold text-yellow-800 mb-2">Authentication Required</h3>
-                    <p className="text-sm text-yellow-700 mb-3">
-                      Sign in to securely store your OpenAI API key and use AI extraction features.
-                    </p>
-                    <AuthComponent onAuthChange={setUser} />
-                  </div>
-                )}
-                
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                   <div className="flex items-center justify-between">
                     <div>
@@ -249,7 +239,7 @@ Omega Morgan`;
                       </button>
                       <button
                         onClick={() => setShowAIChatbox(true)}
-                        disabled={!hasStoredApiKey || !user}
+                        disabled={!storedKeyId}
                         className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         <Bot className="w-4 h-4 mr-2" />
@@ -257,9 +247,9 @@ Omega Morgan`;
                       </button>
                     </div>
                   </div>
-                  {!hasStoredApiKey && (
+                  {!storedKeyId && (
                     <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-700">
-                      ⚠️ {!user ? 'Sign in and set up' : 'Set up'} your OpenAI API key in settings to use AI extraction
+                      ⚠️ Set up your OpenAI API key in settings to use AI extraction
                     </div>
                   )}
                 </div>
@@ -554,11 +544,11 @@ Omega Morgan`;
           </div>
 
           {/* AI Chatbox */}
-          <AIChatbox
+          <SimpleAIChatbox
             isOpen={showAIChatbox}
             onClose={() => setShowAIChatbox(false)}
             onExtract={handleAIExtract}
-            hasStoredApiKey={hasStoredApiKey}
+            keyId={storedKeyId}
           />
 
           {/* API Key Manager Modal */}
@@ -575,7 +565,7 @@ Omega Morgan`;
                   </button>
                 </div>
                 <div className="p-6">
-                  <ApiKeyManager onApiKeySet={setHasStoredApiKey} />
+                  <SimpleApiKeyManager onApiKeySet={handleApiKeySet} />
                 </div>
               </div>
             </div>
