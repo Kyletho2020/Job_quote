@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, CheckCircle, Calculator, Truck, Users, MapPin, Phone, Building, FileText, Mail, User, Bot } from 'lucide-react';
+import { Copy, CheckCircle, Calculator, Truck, Users, MapPin, Phone, Building, FileText, Mail, User, Bot, X } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import AIChatbox from './components/AIChatbox';
 import ApiKeyManager from './components/ApiKeyManager';
@@ -566,7 +566,7 @@ Omega Morgan`;
                 </div>
               </div>
             </div>
-          />
+          )}
         </div>
       </div>
     </div>
