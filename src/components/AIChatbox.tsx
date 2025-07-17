@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
-import { Bot, Send, Loader, X, MessageSquare, Key } from 'lucide-react';
+import { Bot, Send, Loader, X, MessageSquare } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface AIChatboxProps {
   onExtract: (extractedInfo: any) => void;
   isOpen: boolean;
   onClose: () => void;
+  hasStoredApiKey: boolean;
 }
 
-const AIChatbox: React.FC<AIChatboxProps> = ({ onExtract, isOpen, onClose }) => {
+const AIChatbox: React.FC<AIChatboxProps> = ({ onExtract, isOpen, onClose, hasStoredApiKey }) => {
   const [input, setInput] = useState('');
-  const [apiKey, setApiKey] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [messages, setMessages] = useState<Array<{ type: 'user' | 'ai' | 'system', content: string }>>([
     {
       type: 'system',
-      content: 'Hi! I can help extract project information from emails, work orders, or any text. Just paste your content and I\'ll automatically fill out the form fields.'
+      content: hasStoredApiKey 
+        ? 'Hi! I can help extract project information from emails, work orders, or any text. Just paste your content and I\'ll automatically fill out the form fields.'
+        : 'Hi! To use AI extraction, please set up your OpenAI API key in the settings first.'
     }
   ]);
 
@@ -23,8 +25,11 @@ const AIChatbox: React.FC<AIChatboxProps> = ({ onExtract, isOpen, onClose }) => 
     e.preventDefault();
     if (!input.trim()) return;
 
-    if (!apiKey.trim()) {
-      setShowApiKeyInput(true);
+    if (!hasStoredApiKey) {
+      setMessages(prev => [...prev, { 
+        type: 'ai', 
+        content: 'Please set up your OpenAI API key in the settings first before using AI extraction.' 
+      }]);
       return;
     }
 
@@ -32,16 +37,15 @@ const AIChatbox: React.FC<AIChatboxProps> = ({ onExtract, isOpen, onClose }) => 
     setMessages(prev => [...prev, { type: 'user', content: input }]);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-extract`, {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-extract-with-stored-key`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          text: input,
-          apiKey: apiKey 
-        }),
+        body: JSON.stringify({ text: input }),
       });
 
       const data = await response.json();
@@ -73,14 +77,6 @@ const AIChatbox: React.FC<AIChatboxProps> = ({ onExtract, isOpen, onClose }) => 
       }]);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleApiKeySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (apiKey.trim()) {
-      setShowApiKeyInput(false);
-      handleSubmit(e);
     }
   };
 
@@ -133,86 +129,36 @@ const AIChatbox: React.FC<AIChatboxProps> = ({ onExtract, isOpen, onClose }) => 
           )}
         </div>
 
-        {/* API Key Input Modal */}
-        {showApiKeyInput && (
-          <div className="absolute inset-0 bg-white rounded-2xl flex items-center justify-center p-6">
-            <div className="w-full max-w-md">
-              <div className="text-center mb-6">
-                <Key className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                <h4 className="text-xl font-bold text-gray-800 mb-2">OpenAI API Key Required</h4>
-                <p className="text-gray-600 text-sm">
-                  To use AI extraction, please enter your OpenAI API key. You can get one from{' '}
-                  <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    OpenAI's website
-                  </a>.
-                </p>
-              </div>
-              <form onSubmit={handleApiKeySubmit} className="space-y-4">
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="sk-..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-                <div className="flex space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setShowApiKeyInput(false)}
-                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Continue
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
         {/* Input Form */}
-        {!showApiKeyInput && (
-          <div className="p-6 border-t border-gray-200">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Paste your email, work order, or project description here..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                rows={3}
-                disabled={loading}
-              />
-              <div className="flex justify-between items-center">
-                <button
-                  type="button"
-                  onClick={() => setShowApiKeyInput(true)}
-                  className="text-sm text-gray-500 hover:text-gray-700 flex items-center"
-                >
-                  <Key className="w-4 h-4 mr-1" />
-                  {apiKey ? 'Change API Key' : 'Set API Key'}
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading || !input.trim()}
-                  className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? (
-                    <Loader className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <Send className="w-4 h-4 mr-2" />
-                  )}
-                  Extract Info
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
+        <div className="p-6 border-t border-gray-200">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={hasStoredApiKey 
+                ? "Paste your email, work order, or project description here..."
+                : "Please set up your API key first to use this feature..."
+              }
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              rows={3}
+              disabled={loading || !hasStoredApiKey}
+            />
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={loading || !input.trim() || !hasStoredApiKey}
+                className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? (
+                  <Loader className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
+                Extract Info
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

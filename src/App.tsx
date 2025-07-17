@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Copy, CheckCircle, Calculator, Truck, Users, MapPin, Phone, Building, FileText, Mail, User, Bot } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import AIChatbox from './components/AIChatbox';
+import ApiKeyManager from './components/ApiKeyManager';
 
 const App: React.FC = () => {
   return <OmegaMorganQuoteForm />;
@@ -44,6 +45,8 @@ const OmegaMorganQuoteForm: React.FC = () => {
 
   const [copied, setCopied] = useState(false);
   const [showAIChatbox, setShowAIChatbox] = useState(false);
+  const [showApiKeyManager, setShowApiKeyManager] = useState(false);
+  const [hasStoredApiKey, setHasStoredApiKey] = useState(false);
   const [storageCalculation, setStorageCalculation] = useState<number>(0);
 
   const handleAIExtract = (extractedInfo: any) => {
@@ -217,19 +220,35 @@ Omega Morgan`;
               </h2>
 
               {/* AI Assistant Button */}
-              <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-blue-800 mb-1">AI Assistant</h3>
-                    <p className="text-sm text-blue-600">Let AI extract project info from emails or documents</p>
+              <div className="mb-6 space-y-4">
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-blue-800 mb-1">AI Assistant</h3>
+                      <p className="text-sm text-blue-600">Let AI extract project info from emails or documents</p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setShowApiKeyManager(true)}
+                        className="flex items-center px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                      >
+                        Settings
+                      </button>
+                      <button
+                        onClick={() => setShowAIChatbox(true)}
+                        disabled={!hasStoredApiKey}
+                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Bot className="w-4 h-4 mr-2" />
+                        Open AI Chat
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => setShowAIChatbox(true)}
-                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Bot className="w-4 h-4 mr-2" />
-                    Open AI Chat
-                  </button>
+                  {!hasStoredApiKey && (
+                    <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-700">
+                      ⚠️ Set up your OpenAI API key in settings to use AI extraction
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -526,6 +545,27 @@ Omega Morgan`;
             isOpen={showAIChatbox}
             onClose={() => setShowAIChatbox(false)}
             onExtract={handleAIExtract}
+            hasStoredApiKey={hasStoredApiKey}
+          />
+
+          {/* API Key Manager Modal */}
+          {showApiKeyManager && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                  <h3 className="text-xl font-bold text-gray-800">API Key Settings</h3>
+                  <button
+                    onClick={() => setShowApiKeyManager(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+                <div className="p-6">
+                  <ApiKeyManager onApiKeySet={setHasStoredApiKey} />
+                </div>
+              </div>
+            </div>
           />
         </div>
       </div>
