@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Copy, CheckCircle, Calculator, Truck, Users, MapPin, Phone, Building, FileText, Mail, User } from 'lucide-react';
+import { supabase } from './lib/supabase';
 
 const App: React.FC = () => {
   return <OmegaMorganQuoteForm />;
@@ -42,6 +43,41 @@ const OmegaMorganQuoteForm: React.FC = () => {
 
   const [copied, setCopied] = useState(false);
   const [storageCalculation, setStorageCalculation] = useState<number>(0);
+
+  const handleAIAutoFill = async () => {
+    if (!aiInput.trim()) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('extract-project-info', {
+        body: { text: aiInput }
+      });
+
+      if (error) {
+        console.error('Error calling edge function:', error);
+        alert('Failed to extract information. Please try again.');
+        return;
+      }
+
+      const { extractedInfo } = data;
+      
+      // Update form data with extracted information
+      setFormData(prev => ({
+        ...prev,
+        ...Object.fromEntries(
+          Object.entries(extractedInfo).filter(([_, value]) => value && value.trim() !== '')
+        )
+      }));
+      
+      setAiInput('');
+      alert('Information extracted and filled successfully!');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to extract information. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const forkliftOptions = [
     { value: '', label: 'Select Forklift Size' },
