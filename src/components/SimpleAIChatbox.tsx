@@ -34,7 +34,7 @@ const SimpleAIChatbox: React.FC<SimpleAIChatboxProps> = ({ onExtract, isOpen, on
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_MANUAL_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: input, keyId: 'a367f6c5-b628-4d93-84ee-f3a1014508b8' }),
+        body: JSON.stringify({ text: input, keyId: '816a7bfb-8a9b-410c-8a62-84bef585eb28' }),
       });
 
       const data = await response.json();

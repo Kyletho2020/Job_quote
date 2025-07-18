@@ -34,7 +34,7 @@ Deno.serve(async (req: Request) => {
     const encryptedKey = btoa(apiKey)
 
     let result
-    if (keyId === 'a367f6c5-b628-4d93-84ee-f3a1014508b8') {
+    if (keyId === '816a7bfb-8a9b-410c-8a62-84bef585eb28') {
       // Update existing key
       const { data, error } = await supabase
         .from('stored_api_key')
