@@ -30,7 +30,7 @@ Deno.serve(async (req: Request) => {
 
     // Retrieve and decrypt the API key
     const { data: keyData, error: keyError } = await supabase
-      .from('api_keys')
+      .from('simple_api_keys')
       .select('encrypted_key')
       .eq('id', keyId)
       .single()

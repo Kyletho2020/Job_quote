@@ -14,7 +14,7 @@ const SimpleAIChatbox: React.FC<SimpleAIChatboxProps> = ({ onExtract, isOpen, on
   const [messages, setMessages] = useState<Array<{ type: 'user' | 'ai' | 'system', content: string }>>([
     {
       type: 'system',
-      content: keyId 
+      content: '9808cd21-bc77-4015-9fa2-817ae7ca0f24'
         ? 'Hi! I can help extract project information from emails, work orders, or any text. Just paste your content and I\'ll automatically fill out the form fields.'
         : 'Hi! Please set up your OpenAI API key in the settings first to use AI extraction.'
     }
@@ -22,7 +22,7 @@ const SimpleAIChatbox: React.FC<SimpleAIChatboxProps> = ({ onExtract, isOpen, on
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !keyId) return;
+    if (!input.trim()) return;
 
     setLoading(true);
     setMessages(prev => [...prev, { type: 'user', content: input }]);
@@ -34,7 +34,7 @@ const SimpleAIChatbox: React.FC<SimpleAIChatboxProps> = ({ onExtract, isOpen, on
           'Authorization': `Bearer ${import.meta.env.VITE_API_KEYS_OM}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: input, keyId }),
+        body: JSON.stringify({ text: input, keyId: '9808cd21-bc77-4015-9fa2-817ae7ca0f24' }),
       });
 
       const data = await response.json();
@@ -124,18 +124,18 @@ const SimpleAIChatbox: React.FC<SimpleAIChatboxProps> = ({ onExtract, isOpen, on
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={keyId 
+              placeholder={'9808cd21-bc77-4015-9fa2-817ae7ca0f24'
                 ? "Paste your email, work order, or project description here..."
                 : "Please set up your API key first to use this feature..."
               }
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               rows={3}
-              disabled={loading || !keyId}
+              disabled={loading}
             />
             <div className="flex justify-end">
               <button
                 type="submit"
-                disabled={loading || !input.trim() || !keyId}
+                disabled={loading || !input.trim()}
                 className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? (

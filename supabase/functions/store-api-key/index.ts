@@ -34,13 +34,13 @@ Deno.serve(async (req: Request) => {
     const encryptedKey = btoa(apiKey)
 
     let result
-    if (keyId) {
+    if (keyId === '9808cd21-bc77-4015-9fa2-817ae7ca0f24') {
       // Update existing key
       const { data, error } = await supabase
-        .from('api_keys')
+        .from('simple_api_keys')
         .update({ 
           encrypted_key: encryptedKey,
-          updated_at: new Date().toISOString()
+          created_at: new Date().toISOString()
         })
         .eq('id', keyId)
         .select()
@@ -54,7 +54,7 @@ Deno.serve(async (req: Request) => {
     } else {
       // Insert new key
       const { data, error } = await supabase
-        .from('api_keys')
+        .from('simple_api_keys')
         .insert({ encrypted_key: encryptedKey })
         .select()
         .single()

@@ -14,12 +14,9 @@ const SimpleApiKeyManager: React.FC<SimpleApiKeyManagerProps> = ({ onApiKeySet }
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
-    // Check if we have a stored key ID in localStorage
-    const savedKeyId = localStorage.getItem('omega_api_key_id');
-    if (savedKeyId) {
-      setStoredKeyId(savedKeyId);
-      onApiKeySet(true, savedKeyId);
-    }
+    // Use the fixed UUID for simple_api_keys
+    setStoredKeyId('9808cd21-bc77-4015-9fa2-817ae7ca0f24');
+    onApiKeySet(true, '9808cd21-bc77-4015-9fa2-817ae7ca0f24');
   }, [onApiKeySet]);
 
   const saveApiKey = async () => {
@@ -43,7 +40,7 @@ const SimpleApiKeyManager: React.FC<SimpleApiKeyManagerProps> = ({ onApiKeySet }
         },
         body: JSON.stringify({ 
           apiKey,
-          keyId: storedKeyId 
+          keyId: '9808cd21-bc77-4015-9fa2-817ae7ca0f24'
         }),
       });
 
@@ -53,9 +50,8 @@ const SimpleApiKeyManager: React.FC<SimpleApiKeyManagerProps> = ({ onApiKeySet }
         throw new Error(data.error || 'Failed to store API key');
       }
 
-      // Store the key ID in localStorage
-      localStorage.setItem('omega_api_key_id', data.keyId);
-      setStoredKeyId(data.keyId);
+      // Use the fixed UUID
+      setStoredKeyId('9808cd21-bc77-4015-9fa2-817ae7ca0f24');
       setMessage({ type: 'success', text: 'API key saved successfully!' });
       setApiKey('');
       onApiKeySet(true, data.keyId);
@@ -68,8 +64,7 @@ const SimpleApiKeyManager: React.FC<SimpleApiKeyManagerProps> = ({ onApiKeySet }
   };
 
   const deleteApiKey = async () => {
-    // Just remove from localStorage for this simple approach
-    localStorage.removeItem('omega_api_key_id');
+    // Reset to null for deletion
     setStoredKeyId(null);
     setMessage({ type: 'success', text: 'API key removed successfully!' });
     onApiKeySet(false);
