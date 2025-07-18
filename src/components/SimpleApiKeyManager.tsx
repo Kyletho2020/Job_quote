@@ -14,9 +14,9 @@ const SimpleApiKeyManager: React.FC<SimpleApiKeyManagerProps> = ({ onApiKeySet }
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
-    // Use the fixed UUID for simple_api_keys
-    setStoredKeyId('9808cd21-bc77-4015-9fa2-817ae7ca0f24');
-    onApiKeySet(true, '9808cd21-bc77-4015-9fa2-817ae7ca0f24');
+    // Use the fixed UUID for stored_api_key
+    setStoredKeyId('a367f6c5-b628-4d93-84ee-f3a1014508b8');
+    onApiKeySet(true, 'a367f6c5-b628-4d93-84ee-f3a1014508b8');
   }, [onApiKeySet]);
 
   const saveApiKey = async () => {
@@ -32,7 +32,7 @@ const SimpleApiKeyManager: React.FC<SimpleApiKeyManagerProps> = ({ onApiKeySet }
 
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/store-api-key`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/store-api-key-simple`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${import.meta.env.VITE_API_KEYS_OM}`,
@@ -40,7 +40,7 @@ const SimpleApiKeyManager: React.FC<SimpleApiKeyManagerProps> = ({ onApiKeySet }
         },
         body: JSON.stringify({ 
           apiKey,
-          keyId: '9808cd21-bc77-4015-9fa2-817ae7ca0f24'
+          keyId: 'a367f6c5-b628-4d93-84ee-f3a1014508b8'
         }),
       });
 
@@ -50,8 +50,8 @@ const SimpleApiKeyManager: React.FC<SimpleApiKeyManagerProps> = ({ onApiKeySet }
         throw new Error(data.error || 'Failed to store API key');
       }
 
-      // Use the fixed UUID
-      setStoredKeyId('9808cd21-bc77-4015-9fa2-817ae7ca0f24');
+      // Use the fixed UUID for stored_api_key
+      setStoredKeyId('a367f6c5-b628-4d93-84ee-f3a1014508b8');
       setMessage({ type: 'success', text: 'API key saved successfully!' });
       setApiKey('');
       onApiKeySet(true, data.keyId);

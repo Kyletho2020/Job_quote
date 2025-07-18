@@ -57,7 +57,7 @@ const OmegaMorganQuoteForm: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [showAIChatbox, setShowAIChatbox] = useState(false);
   const [showApiKeyManager, setShowApiKeyManager] = useState(false);
-  const [storedKeyId, setStoredKeyId] = useState<string | null>('9808cd21-bc77-4015-9fa2-817ae7ca0f24');
+  const [storedKeyId, setStoredKeyId] = useState<string | null>('a367f6c5-b628-4d93-84ee-f3a1014508b8');
   const [storageCalculation, setStorageCalculation] = useState<number>(0);
   const [activeSection, setActiveSection] = useState('project');
 
@@ -72,7 +72,7 @@ const OmegaMorganQuoteForm: React.FC = () => {
   };
 
   const handleApiKeySet = (hasKey: boolean, keyId?: string) => {
-    setStoredKeyId(hasKey ? '9808cd21-bc77-4015-9fa2-817ae7ca0f24' : null);
+    setStoredKeyId(hasKey ? 'a367f6c5-b628-4d93-84ee-f3a1014508b8' : null);
   };
 
   const forkliftOptions = [

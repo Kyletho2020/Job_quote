@@ -14,7 +14,7 @@ const SimpleAIChatbox: React.FC<SimpleAIChatboxProps> = ({ onExtract, isOpen, on
   const [messages, setMessages] = useState<Array<{ type: 'user' | 'ai' | 'system', content: string }>>([
     {
       type: 'system',
-      content: '9808cd21-bc77-4015-9fa2-817ae7ca0f24'
+      content: 'a367f6c5-b628-4d93-84ee-f3a1014508b8'
         ? 'Hi! I can help extract project information from emails, work orders, or any text. Just paste your content and I\'ll automatically fill out the form fields.'
         : 'Hi! Please set up your OpenAI API key in the settings first to use AI extraction.'
     }
@@ -28,13 +28,13 @@ const SimpleAIChatbox: React.FC<SimpleAIChatboxProps> = ({ onExtract, isOpen, on
     setMessages(prev => [...prev, { type: 'user', content: input }]);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-extract-simple`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-extract-stored`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${import.meta.env.VITE_API_KEYS_OM}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: input, keyId: '9808cd21-bc77-4015-9fa2-817ae7ca0f24' }),
+        body: JSON.stringify({ text: input, keyId: 'a367f6c5-b628-4d93-84ee-f3a1014508b8' }),
       });
 
       const data = await response.json();
@@ -124,7 +124,7 @@ const SimpleAIChatbox: React.FC<SimpleAIChatboxProps> = ({ onExtract, isOpen, on
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={'9808cd21-bc77-4015-9fa2-817ae7ca0f24'
+              placeholder={'a367f6c5-b628-4d93-84ee-f3a1014508b8'
                 ? "Paste your email, work order, or project description here..."
                 : "Please set up your API key first to use this feature..."
               }
