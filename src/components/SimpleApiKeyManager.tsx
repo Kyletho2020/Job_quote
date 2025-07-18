@@ -38,7 +38,7 @@ const SimpleApiKeyManager: React.FC<SimpleApiKeyManagerProps> = ({ onApiKeySet }
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/store-api-key`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_API_KEYS_OM}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
