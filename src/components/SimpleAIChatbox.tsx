@@ -31,7 +31,7 @@ const SimpleAIChatbox: React.FC<SimpleAIChatboxProps> = ({ onExtract, isOpen, on
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-extract-stored`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_API_KEYS_OM}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_MANUAL_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ text: input, keyId: 'a367f6c5-b628-4d93-84ee-f3a1014508b8' }),
