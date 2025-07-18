@@ -26,7 +26,7 @@ Deno.serve(async (req: Request) => {
     // Initialize Supabase client with service role key
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('API_KEYS_OM') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
     // Simple encryption using base64 encoding (for basic obfuscation)

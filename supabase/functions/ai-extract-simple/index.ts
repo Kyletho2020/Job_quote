@@ -25,7 +25,7 @@ Deno.serve(async (req: Request) => {
     // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('API_KEYS_OM') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
     // Retrieve and decrypt the API key
