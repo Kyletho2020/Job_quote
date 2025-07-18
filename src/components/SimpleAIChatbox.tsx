@@ -40,7 +40,8 @@ const SimpleAIChatbox: React.FC<SimpleAIChatboxProps> = ({ onExtract, isOpen, on
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to extract information');
+        const errorMessage = data.details ? `${data.error}: ${data.details}` : (data.error || 'Failed to extract information');
+        throw new Error(errorMessage);
       }
 
       const { extractedInfo } = data;

@@ -48,6 +48,17 @@ Deno.serve(async (req: Request) => {
     // Decrypt the API key (reverse the base64 encoding)
     const apiKey = atob(keyData.encrypted_key)
 
+    // Validate API key format
+    if (!apiKey || !apiKey.startsWith('sk-')) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid API key format stored in database' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
     // Call OpenAI API
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -83,11 +94,37 @@ Deno.serve(async (req: Request) => {
     })
 
     if (!openaiResponse.ok) {
-      const errorData = await openaiResponse.text()
-      throw new Error(`OpenAI API error: ${openaiResponse.status} - ${errorData}`)
+      const errorData = await openaiResponse.json().catch(() => ({ error: 'Unknown error' }))
+      console.error('OpenAI API Error:', {
+        status: openaiResponse.status,
+        statusText: openaiResponse.statusText,
+        error: errorData
+      })
+      
+      return new Response(
+        JSON.stringify({ 
+          error: `OpenAI API error: ${openaiResponse.status}`,
+          details: errorData.error?.message || errorData.error || 'Unknown OpenAI error'
+        }),
+        {
+          status: openaiResponse.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
     }
 
     const openaiData = await openaiResponse.json()
+    
+    if (!openaiData.choices || !openaiData.choices[0] || !openaiData.choices[0].message) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid response from OpenAI API' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+    
     const extractedInfo = JSON.parse(openaiData.choices[0].message.content)
 
     return new Response(
